@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+	<title>DiceRoller</title>
+	<style>
+		body {
+			font-family: sans-serif;
+			font-size: 15pt;
+		}
+		ul#rolls li:first-child {
+			font-size: 1.6em;
+		}
+		ul#rolls li {
+			padding: 10px;
+		}
+		ul#rolls li span {
+			font-size: 0.9em;
+			padding: 10px;
+			color: #888;
+		}
+		ul#rolls li span.total {
+			font-size: 1.25em;
+			color: black;
+		}
+	</style>
+</head>
+<body>
+
+	<h2>Enter your name</h2>
+	<input class="your-name" type="text" placeholder="your name"><br><br>
+
+	<h2>Roll some dice</h2>
+	<button class="request-roll" data-count="1" data-faces="4">1 d4</button>
+	<button class="request-roll" data-count="2" data-faces="4">2 d4</button>
+	<button class="request-roll" data-count="3" data-faces="4">3 d4</button>
+	<button class="request-roll" data-count="4" data-faces="4">4 d4</button>
+	<button class="request-roll" data-count="5" data-faces="4">5 d4</button>
+	<button class="request-roll" data-count="6" data-faces="4">6 d4</button>
+	<button class="request-roll" data-count="7" data-faces="4">7 d4</button>
+	<button class="request-roll" data-count="8" data-faces="4">8 d4</button><br>
+	
+	<button class="request-roll" data-count="1" data-faces="6">1 d6</button>
+	<button class="request-roll" data-count="2" data-faces="6">2 d6</button>
+	<button class="request-roll" data-count="3" data-faces="6">3 d6</button>
+	<button class="request-roll" data-count="4" data-faces="6">4 d6</button>
+	<button class="request-roll" data-count="5" data-faces="6">5 d6</button>
+	<button class="request-roll" data-count="6" data-faces="6">6 d6</button>
+	<button class="request-roll" data-count="7" data-faces="6">7 d6</button>
+	<button class="request-roll" data-count="8" data-faces="6">8 d6</button><br>
+	
+	<button class="request-roll" data-count="1" data-faces="8">1 d8</button>
+	<button class="request-roll" data-count="2" data-faces="8">2 d8</button>
+	<button class="request-roll" data-count="3" data-faces="8">3 d8</button>
+	<button class="request-roll" data-count="4" data-faces="8">4 d8</button>
+	<button class="request-roll" data-count="5" data-faces="8">5 d8</button>
+	<button class="request-roll" data-count="6" data-faces="8">6 d8</button>
+	<button class="request-roll" data-count="7" data-faces="8">7 d8</button>
+	<button class="request-roll" data-count="8" data-faces="8">8 d8</button><br>
+	
+	<button class="request-roll" data-count="1" data-faces="10">1 d10</button>
+	<button class="request-roll" data-count="2" data-faces="10">2 d10</button>
+	<button class="request-roll" data-count="3" data-faces="10">3 d10</button>
+	<button class="request-roll" data-count="4" data-faces="10">4 d10</button>
+	<button class="request-roll" data-count="5" data-faces="10">5 d10</button>
+	<button class="request-roll" data-count="6" data-faces="10">6 d10</button>
+	<button class="request-roll" data-count="7" data-faces="10">7 d10</button>
+	<button class="request-roll" data-count="8" data-faces="10">8 d10</button><br>
+	
+	<button class="request-roll" data-count="1" data-faces="12">1 d12</button>
+	<button class="request-roll" data-count="2" data-faces="12">2 d12</button>
+	<button class="request-roll" data-count="3" data-faces="12">3 d12</button>
+	<button class="request-roll" data-count="4" data-faces="12">4 d12</button>
+	<button class="request-roll" data-count="5" data-faces="12">5 d12</button>
+	<button class="request-roll" data-count="6" data-faces="12">6 d12</button>
+	<button class="request-roll" data-count="7" data-faces="12">7 d12</button>
+	<button class="request-roll" data-count="8" data-faces="12">8 d12</button><br>
+
+	<button class="request-roll" data-count="1" data-faces="20">1 d20</button>
+	<button class="request-roll" data-count="2" data-faces="20">2 d20</button>
+	<button class="request-roll" data-count="3" data-faces="20">3 d20</button>
+	<button class="request-roll" data-count="4" data-faces="20">4 d20</button>
+	<button class="request-roll" data-count="5" data-faces="20">5 d20</button>
+	<button class="request-roll" data-count="6" data-faces="20">6 d20</button>
+	<button class="request-roll" data-count="7" data-faces="20">7 d20</button>
+	<button class="request-roll" data-count="8" data-faces="20">8 d20</button>
+
+	<h2>History</h2>
+
+	<ul id="rolls"></ul>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var socket = io()
+		document.querySelectorAll('.request-roll').forEach((requestRollButton) => {
+			requestRollButton.addEventListener('click', function() {
+				let name = document.querySelector('.your-name').value
+				if (!name) {
+					alert('enter a name first')
+					return
+				}
+				console.log('request roll button', requestRollButton, requestRollButton.dataset)
+				socket.emit('request roll', {
+					count: +requestRollButton.dataset.count, 
+					faces: +requestRollButton.dataset.faces, 
+					name
+				})
+			})
+
+		})
+
+		socket.on('rolled', function(data){
+			console.log('received "rolled" event', data)
+			let list = document.querySelector('ul#rolls')
+			let newLI = document.createElement('li')
+			newLI.innerHTML = `${data.name} rolled ${data.count} D${data.faces}s<br>`
+			let total = 0
+			data.rolls.forEach(roll => {
+				total += roll
+				newLI.innerHTML += `<span>${roll}</span>`
+			});
+			newLI.innerHTML += `<span class="total">${total}</span>`
+			if (list.children.length) {
+				list.insertBefore(newLI, list.children[0])
+			} else {
+				list.appendChild(newLI)
+			}
+		});
+	</script>
+</body>
+</html>
